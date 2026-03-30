@@ -4,6 +4,7 @@ import { type Token, TokenType } from "./tokens.js";
 
 export interface DeserializeOptions {
 	strict?: boolean; // default: true -- validate type constraints
+	engine?: "auto" | "wasm" | "ts"; // default: "auto"
 }
 
 /** Sentinel marking a value expression that is type-only (no concrete data). */
@@ -41,7 +42,7 @@ const TYPE_KEYWORDS = new Set<TokenType>([
  * Reuses the existing Lexer for tokenization and performs a single-pass
  * recursive descent to build plain objects directly (no AST).
  */
-export function deserialize(
+export function deserializeTs(
 	input: string,
 	options?: DeserializeOptions,
 ): Record<string, unknown> {

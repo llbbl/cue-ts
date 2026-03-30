@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deserialize } from "../src/deserializer.js";
+import { deserializeTs as deserialize } from "../src/deserializer.js";
 import { CueParseError } from "../src/errors.js";
 
 describe("deserialize", () => {

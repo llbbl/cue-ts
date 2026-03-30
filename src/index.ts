@@ -32,6 +32,14 @@ export type {
 } from "./ast.js";
 export { CueParseError } from "./errors.js";
 
-export { deserialize, type DeserializeOptions } from "./deserializer.js";
+// Smart deserialize with WASM auto-detection and fallback
+export {
+	deserialize,
+	deserializeAsync,
+	initWasm,
+} from "./deserialize.js";
+export type { DeserializeOptions } from "./deserializer.js";
+// Direct access to the TS-only deserializer
+export { deserializeTs } from "./deserializer.js";
 export { Lexer } from "./lexer.js";
 export { type Token, TokenType } from "./tokens.js";
