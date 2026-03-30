@@ -1,6 +1,6 @@
+import { fastDeserialize } from "./fast-deserializer.js";
 import { Lexer } from "./lexer.js";
 import { type Token, TokenType } from "./tokens.js";
-import { fastDeserialize } from "./fast-deserializer.js";
 
 // Compiled constraint types
 interface CompiledField {
@@ -30,11 +30,14 @@ export interface CueValidator {
 type Cursor = { pos: number };
 
 function peek(tokens: Token[], cur: Cursor): Token {
-	return tokens[cur.pos] ?? tokens[tokens.length - 1]!;
+	const token = tokens[cur.pos] ?? tokens[tokens.length - 1];
+	if (!token) throw new Error("Unexpected end of token stream");
+	return token;
 }
 
 function advance(tokens: Token[], cur: Cursor): Token {
-	const t = tokens[cur.pos] ?? tokens[tokens.length - 1]!;
+	const t = tokens[cur.pos] ?? tokens[tokens.length - 1];
+	if (!t) throw new Error("Unexpected end of token stream");
 	cur.pos++;
 	return t;
 }
@@ -101,14 +104,25 @@ function skipToNextTopLevel(tokens: Token[], cur: Cursor): void {
 	let depth = 0;
 	while (peek(tokens, cur).type !== TokenType.EOF) {
 		const t = peek(tokens, cur);
-		if (t.type === TokenType.LBRACE || t.type === TokenType.LBRACKET || t.type === TokenType.LPAREN) {
+		if (
+			t.type === TokenType.LBRACE ||
+			t.type === TokenType.LBRACKET ||
+			t.type === TokenType.LPAREN
+		) {
 			depth++;
 			cur.pos++;
-		} else if (t.type === TokenType.RBRACE || t.type === TokenType.RBRACKET || t.type === TokenType.RPAREN) {
+		} else if (
+			t.type === TokenType.RBRACE ||
+			t.type === TokenType.RBRACKET ||
+			t.type === TokenType.RPAREN
+		) {
 			if (depth === 0) return;
 			depth--;
 			cur.pos++;
-		} else if (depth === 0 && (t.type === TokenType.HASH || t.type === TokenType.IDENT || t.type === TokenType.STRING)) {
+		} else if (
+			depth === 0 &&
+			(t.type === TokenType.HASH || t.type === TokenType.IDENT || t.type === TokenType.STRING)
+		) {
 			// Possible start of next top-level item — check if we are truly at depth 0
 			return;
 		} else {
@@ -367,7 +381,13 @@ function parseTypeAtom(
 	}
 
 	// Disjunction of literals: "a" | "b" | "c" or number literals
-	if (t.type === TokenType.STRING || t.type === TokenType.NUMBER || t.type === TokenType.TRUE || t.type === TokenType.FALSE || t.type === TokenType.NULL) {
+	if (
+		t.type === TokenType.STRING ||
+		t.type === TokenType.NUMBER ||
+		t.type === TokenType.TRUE ||
+		t.type === TokenType.FALSE ||
+		t.type === TokenType.NULL
+	) {
 		const values: (string | number | boolean | null)[] = [];
 		values.push(parseLiteralValue(tokens, cur));
 
@@ -375,7 +395,13 @@ function parseTypeAtom(
 			cur.pos++; // skip |
 			skipComments(tokens, cur);
 			const next = peek(tokens, cur);
-			if (next.type === TokenType.STRING || next.type === TokenType.NUMBER || next.type === TokenType.TRUE || next.type === TokenType.FALSE || next.type === TokenType.NULL) {
+			if (
+				next.type === TokenType.STRING ||
+				next.type === TokenType.NUMBER ||
+				next.type === TokenType.TRUE ||
+				next.type === TokenType.FALSE ||
+				next.type === TokenType.NULL
+			) {
 				values.push(parseLiteralValue(tokens, cur));
 			} else {
 				break;
@@ -444,7 +470,10 @@ function skipBracketed(tokens: Token[], cur: Cursor): void {
 }
 
 function skipToClosingBracket(tokens: Token[], cur: Cursor): void {
-	while (peek(tokens, cur).type !== TokenType.RBRACKET && peek(tokens, cur).type !== TokenType.EOF) {
+	while (
+		peek(tokens, cur).type !== TokenType.RBRACKET &&
+		peek(tokens, cur).type !== TokenType.EOF
+	) {
 		if (peek(tokens, cur).type === TokenType.LBRACE) {
 			skipBraced(tokens, cur);
 		} else if (peek(tokens, cur).type === TokenType.LBRACKET) {
@@ -475,10 +504,18 @@ function skipTypeExpression(tokens: Token[], cur: Cursor): void {
 	let depth = 0;
 	while (peek(tokens, cur).type !== TokenType.EOF) {
 		const t = peek(tokens, cur);
-		if (t.type === TokenType.LBRACE || t.type === TokenType.LBRACKET || t.type === TokenType.LPAREN) {
+		if (
+			t.type === TokenType.LBRACE ||
+			t.type === TokenType.LBRACKET ||
+			t.type === TokenType.LPAREN
+		) {
 			depth++;
 			cur.pos++;
-		} else if (t.type === TokenType.RBRACE || t.type === TokenType.RBRACKET || t.type === TokenType.RPAREN) {
+		} else if (
+			t.type === TokenType.RBRACE ||
+			t.type === TokenType.RBRACKET ||
+			t.type === TokenType.RPAREN
+		) {
 			if (depth === 0) return;
 			depth--;
 			cur.pos++;
@@ -536,7 +573,12 @@ function validateObject(
 			for (let i = 0; i < value.length; i++) {
 				const item = value[i];
 				if (item !== null && typeof item === "object" && !Array.isArray(item)) {
-					validateObject(item as Record<string, unknown>, definitions, errors, `${path}.${key}[${i}]`);
+					validateObject(
+						item as Record<string, unknown>,
+						definitions,
+						errors,
+						`${path}.${key}[${i}]`,
+					);
 				}
 			}
 		}
@@ -624,7 +666,9 @@ function validateFieldValue(
 	// Enum check
 	if (field.enumValues) {
 		if (!field.enumValues.includes(value as string | number | boolean | null)) {
-			errors.push(`${path}: value ${JSON.stringify(value)} not in enum [${field.enumValues.map((v) => JSON.stringify(v)).join(", ")}]`);
+			errors.push(
+				`${path}: value ${JSON.stringify(value)} not in enum [${field.enumValues.map((v) => JSON.stringify(v)).join(", ")}]`,
+			);
 			return;
 		}
 	}
@@ -704,7 +748,9 @@ export function compileSchema(schemaText: string): CueValidator {
  * Returns a function that deserializes CUE data text and validates
  * against the compiled schema.
  */
-export function createDeserializer(schemaText: string): (dataText: string) => Record<string, unknown> {
+export function createDeserializer(
+	schemaText: string,
+): (dataText: string) => Record<string, unknown> {
 	const validator = compileSchema(schemaText);
 
 	return (dataText: string) => {
@@ -748,16 +794,19 @@ export function stripDefinitions(cueText: string): string {
 
 			for (let j = lineStart; j < len; j++) {
 				const ch = cueText.charCodeAt(j);
-				if (ch === 34) { // " — skip strings
+				if (ch === 34) {
+					// " — skip strings
 					j++;
 					while (j < len && cueText.charCodeAt(j) !== 34) {
 						if (cueText.charCodeAt(j) === 92) j++; // skip escaped chars
 						j++;
 					}
-				} else if (ch === 123) { // {
+				} else if (ch === 123) {
+					// {
 					depth++;
 					foundBrace = true;
-				} else if (ch === 125) { // }
+				} else if (ch === 125) {
+					// }
 					depth--;
 					if (foundBrace && depth === 0) {
 						// Skip past the closing brace and any trailing whitespace/newline

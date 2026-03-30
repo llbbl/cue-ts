@@ -30,6 +30,12 @@ export type {
 	CueUnaryExpr,
 	CueUnaryOperator,
 } from "./ast.js";
+export {
+	type CueValidator,
+	compileSchema,
+	createDeserializer,
+	stripDefinitions,
+} from "./compiled-schema.js";
 // Smart deserialize with WASM auto-detection and fallback
 export {
 	deserialize,
@@ -41,6 +47,5 @@ export type { DeserializeOptions } from "./deserializer.js";
 export { deserializeTs } from "./deserializer.js";
 export { CueParseError } from "./errors.js";
 export { fastDeserialize } from "./fast-deserializer.js";
-export { compileSchema, createDeserializer, stripDefinitions, type CueValidator } from "./compiled-schema.js";
 export { Lexer } from "./lexer.js";
 export { type Token, TokenType } from "./tokens.js";

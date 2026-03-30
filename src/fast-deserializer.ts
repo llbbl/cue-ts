@@ -54,17 +54,10 @@ const CH_A = 65;
 const CH_Z = 90;
 const CH_f = 102;
 const CH_F = 70;
-const CH_u = 117;
-const CH_U = 85;
+const _CH_u = 117;
+const _CH_U = 85;
 
-const TYPE_KEYWORDS = new Set([
-	"string",
-	"int",
-	"float",
-	"bool",
-	"number",
-	"bytes",
-]);
+const TYPE_KEYWORDS = new Set(["string", "int", "float", "bool", "number", "bytes"]);
 
 export function fastDeserialize(input: string): Record<string, unknown> {
 	let pos = 0;
@@ -119,7 +112,11 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 		pos++; // skip opening "
 
 		// Check for triple-quoted string: """
-		if (pos + 1 < len && input.charCodeAt(pos) === CH_DQUOTE && input.charCodeAt(pos + 1) === CH_DQUOTE) {
+		if (
+			pos + 1 < len &&
+			input.charCodeAt(pos) === CH_DQUOTE &&
+			input.charCodeAt(pos + 1) === CH_DQUOTE
+		) {
 			pos += 2; // skip the remaining ""
 			return readTripleQuotedString();
 		}
@@ -185,7 +182,7 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 				pos++;
 				if (pos >= len) throw new Error(`Unterminated escape at position ${pos}`);
 
-				const escChar = input[pos]!;
+				const escChar = input[pos] as string;
 				const mapped = ESCAPE_MAP[escChar];
 				if (mapped !== undefined) {
 					result += mapped;
@@ -228,7 +225,12 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 		while (pos < len && isDigit(input.charCodeAt(pos))) pos++;
 
 		// Float
-		if (pos < len && input.charCodeAt(pos) === CH_DOT && pos + 1 < len && isDigit(input.charCodeAt(pos + 1))) {
+		if (
+			pos < len &&
+			input.charCodeAt(pos) === CH_DOT &&
+			pos + 1 < len &&
+			isDigit(input.charCodeAt(pos + 1))
+		) {
 			pos++; // skip '.'
 			while (pos < len && isDigit(input.charCodeAt(pos))) pos++;
 		}
@@ -288,12 +290,7 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 
 			// Top-level terminators (only if not nested)
 			if (depth === 0) {
-				if (
-					c === CH_COMMA ||
-					c === CH_RBRACE ||
-					c === CH_RBRACKET ||
-					c === -1
-				) {
+				if (c === CH_COMMA || c === CH_RBRACE || c === CH_RBRACKET || c === -1) {
 					return;
 				}
 				// After consuming something and crossing a newline, if we see
@@ -391,7 +388,11 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 
 		// _|_ (bottom) or _ (top)
 		if (c === CH_UNDERSCORE) {
-			if (pos + 2 < len && input.charCodeAt(pos + 1) === CH_PIPE && input.charCodeAt(pos + 2) === CH_UNDERSCORE) {
+			if (
+				pos + 2 < len &&
+				input.charCodeAt(pos + 1) === CH_PIPE &&
+				input.charCodeAt(pos + 2) === CH_UNDERSCORE
+			) {
 				pos += 3;
 				return undefined;
 			}
@@ -525,7 +526,12 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 			}
 
 			// Ellipsis: ... -- skip
-			if (c === CH_DOT && pos + 2 < len && input.charCodeAt(pos + 1) === CH_DOT && input.charCodeAt(pos + 2) === CH_DOT) {
+			if (
+				c === CH_DOT &&
+				pos + 2 < len &&
+				input.charCodeAt(pos + 1) === CH_DOT &&
+				input.charCodeAt(pos + 2) === CH_DOT
+			) {
 				pos += 3;
 				skipWhitespaceAndComments();
 				// May be followed by a type expression
@@ -585,7 +591,12 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 		}
 
 		// Check for [...type] pattern
-		if (ch() === CH_DOT && pos + 2 < len && input.charCodeAt(pos + 1) === CH_DOT && input.charCodeAt(pos + 2) === CH_DOT) {
+		if (
+			ch() === CH_DOT &&
+			pos + 2 < len &&
+			input.charCodeAt(pos + 1) === CH_DOT &&
+			input.charCodeAt(pos + 2) === CH_DOT
+		) {
 			pos += 3;
 			skipExpression();
 			skipWhitespaceAndComments();
@@ -608,7 +619,12 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 				if (pos >= len || ch() === CH_RBRACKET) break;
 
 				// Ellipsis at end of list
-				if (ch() === CH_DOT && pos + 2 < len && input.charCodeAt(pos + 1) === CH_DOT && input.charCodeAt(pos + 2) === CH_DOT) {
+				if (
+					ch() === CH_DOT &&
+					pos + 2 < len &&
+					input.charCodeAt(pos + 1) === CH_DOT &&
+					input.charCodeAt(pos + 2) === CH_DOT
+				) {
 					pos += 3;
 					skipExpression();
 					skipWhitespaceAndComments();
