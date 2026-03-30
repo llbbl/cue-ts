@@ -258,12 +258,30 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 	/**
 	 * Skip an expression we don't care about (type constraints, definitions).
 	 * Balances braces/brackets/parens so nested structures are fully consumed.
+	 * Tracks whether we've crossed a newline to detect field boundaries.
 	 */
 	function skipExpression(): void {
 		let depth = 0;
+		let seenNewline = false;
+		let consumedAny = false;
 
 		while (pos < len) {
-			skipWhitespaceAndComments();
+			// Skip whitespace but track newlines
+			while (pos < len) {
+				const wc = input.charCodeAt(pos);
+				if (wc === CH_LF) {
+					seenNewline = true;
+					pos++;
+				} else if (wc === CH_SPACE || wc === CH_TAB || wc === CH_CR) {
+					pos++;
+				} else if (wc === CH_SLASH && pos + 1 < len && input.charCodeAt(pos + 1) === CH_SLASH) {
+					const nl = input.indexOf("\n", pos + 2);
+					pos = nl === -1 ? len : nl + 1;
+					seenNewline = true;
+				} else {
+					break;
+				}
+			}
 			if (pos >= len) return;
 
 			const c = ch();
@@ -278,22 +296,27 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 				) {
 					return;
 				}
-				// Also stop at newline-equivalent separators when at top level
-				// but since we skip whitespace above, we just rely on comma/brace
+				// After consuming something and crossing a newline, if we see
+				// an identifier, #, or string (field start), stop — it's a new field
+				if (consumedAny && seenNewline) {
+					if (isIdentStart(c) || c === CH_HASH || c === CH_DQUOTE || c === CH_DOT) {
+						return;
+					}
+				}
 			}
+
+			consumedAny = true;
 
 			if (c === CH_LBRACE || c === CH_LBRACKET || c === CH_LPAREN) {
 				depth++;
 				pos++;
+				seenNewline = false;
 			} else if (c === CH_RBRACE || c === CH_RBRACKET || c === CH_RPAREN) {
 				if (depth === 0) return;
 				depth--;
 				pos++;
 			} else if (c === CH_DQUOTE) {
 				readString(); // consume full string
-			} else if (c === CH_SLASH && pos + 1 < len && input.charCodeAt(pos + 1) === CH_SLASH) {
-				const nl = input.indexOf("\n", pos + 2);
-				pos = nl === -1 ? len : nl + 1;
 			} else {
 				pos++;
 			}
@@ -396,6 +419,20 @@ export function fastDeserialize(input: string): Record<string, unknown> {
 
 			// Bare identifier -- return as string (best effort, like original)
 			return ident;
+		}
+
+		// #Reference (type reference like #Address, #User) -- skip, return undefined
+		if (c === CH_HASH) {
+			pos++;
+			if (pos < len && isIdentStart(ch())) {
+				readIdent(); // consume the reference name
+			}
+			// May be followed by & with concrete value
+			skipWhitespaceAndComments();
+			if (pos < len && ch() === CH_AMP) {
+				// Don't consume the & here — let readValueExpr handle it
+			}
+			return undefined;
 		}
 
 		// Constraint operators at value position -- skip entire constraint expr

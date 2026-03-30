@@ -293,6 +293,14 @@ class Deserializer {
 				this.expect(TokenType.RPAREN);
 				return inner;
 			}
+			case TokenType.HASH: {
+				// #Reference (type reference like #Address, #User) -- treat as type-only
+				this.advance(); // consume #
+				if (this.peek().type === TokenType.IDENT) {
+					this.advance(); // consume the reference name
+				}
+				return { kind: "type_keyword", name: "definition_ref" };
+			}
 			default: {
 				if (TYPE_KEYWORDS.has(token.type)) {
 					const t = this.advance();

@@ -267,6 +267,12 @@ export class Parser {
 			case TokenType.BOTTOM:
 				this.advance();
 				return { kind: "type", name: "bottom" } as CueType;
+			case TokenType.HASH: {
+				// #Reference (type reference like #Address, #User)
+				this.advance(); // consume #
+				const refName = this.peek().type === TokenType.IDENT ? this.advance().value : "";
+				return { kind: "ident", name: `#${refName}` } as CueIdent;
+			}
 			default:
 				throw new CueParseError(
 					`Unexpected token ${TokenType[token.type]}`,
