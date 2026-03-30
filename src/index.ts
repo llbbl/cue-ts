@@ -32,5 +32,6 @@ export type {
 } from "./ast.js";
 export { CueParseError } from "./errors.js";
 
+export { deserialize, type DeserializeOptions } from "./deserializer.js";
 export { Lexer } from "./lexer.js";
 export { type Token, TokenType } from "./tokens.js";
