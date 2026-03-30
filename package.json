@@ -26,7 +26,10 @@
   ],
   "author": "Logan Lindquist Land",
   "license": "Apache-2.0",
-  "files": ["dist", "wasm/pkg"],
+  "files": [
+    "dist",
+    "wasm/pkg"
+  ],
   "packageManager": "pnpm@10.29.3",
   "devDependencies": {
     "@biomejs/biome": "^2.4.9",
