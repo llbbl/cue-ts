@@ -113,9 +113,7 @@ class Deserializer {
 
 	// ── Declarations ───────────────────────────────────────────────────
 
-	private deserializeDeclarations(
-		closingToken: TokenType,
-	): Record<string, unknown> {
+	private deserializeDeclarations(closingToken: TokenType): Record<string, unknown> {
 		const result: Record<string, unknown> = {};
 
 		while (this.peek().type !== closingToken) {
@@ -125,10 +123,7 @@ class Deserializer {
 			// Definition: # IDENT : value  -- skip (store internally only)
 			if (this.peek().type === TokenType.HASH) {
 				this.parseDefinition();
-			} else if (
-				this.peek().type === TokenType.IDENT ||
-				this.peek().type === TokenType.STRING
-			) {
+			} else if (this.peek().type === TokenType.IDENT || this.peek().type === TokenType.STRING) {
 				const label = this.advance().value;
 
 				// Skip optional marker
@@ -479,31 +474,21 @@ class Deserializer {
 		return { value: TYPE_ONLY, schema };
 	}
 
-	private mergeSchemas(
-		a: FieldSchema | null,
-		b: FieldSchema | null,
-	): FieldSchema | null {
+	private mergeSchemas(a: FieldSchema | null, b: FieldSchema | null): FieldSchema | null {
 		if (!a && !b) return null;
 		if (!a) return b;
 		if (!b) return a;
 
 		return {
 			type: a.type ?? b.type,
-			constraints: [
-				...(a.constraints ?? []),
-				...(b.constraints ?? []),
-			],
+			constraints: [...(a.constraints ?? []), ...(b.constraints ?? [])],
 			disjunctionValues: a.disjunctionValues ?? b.disjunctionValues,
 		};
 	}
 
 	// ── Validation ─────────────────────────────────────────────────────
 
-	private validate(
-		value: DeserializedValue,
-		schema: FieldSchema,
-		label: string,
-	): void {
+	private validate(value: DeserializedValue, schema: FieldSchema, label: string): void {
 		if (value === TYPE_ONLY) return;
 
 		// Type validation
@@ -524,19 +509,11 @@ class Deserializer {
 		}
 	}
 
-	private validateType(
-		value: DeserializedValue,
-		typeName: string,
-		label: string,
-	): void {
+	private validateType(value: DeserializedValue, typeName: string, label: string): void {
 		switch (typeName) {
 			case "string":
 				if (typeof value !== "string") {
-					throw new CueParseError(
-						`Field "${label}": expected string, got ${typeof value}`,
-						0,
-						0,
-					);
+					throw new CueParseError(`Field "${label}": expected string, got ${typeof value}`, 0, 0);
 				}
 				break;
 			case "int":
@@ -560,11 +537,7 @@ class Deserializer {
 				break;
 			case "bool":
 				if (typeof value !== "boolean") {
-					throw new CueParseError(
-						`Field "${label}": expected bool, got ${typeof value}`,
-						0,
-						0,
-					);
+					throw new CueParseError(`Field "${label}": expected bool, got ${typeof value}`, 0, 0);
 				}
 				break;
 		}
@@ -609,11 +582,7 @@ class Deserializer {
 				try {
 					regex = new RegExp(operand);
 				} catch {
-					throw new CueParseError(
-						`Field "${label}": invalid regex pattern: ${operand}`,
-						0,
-						0,
-					);
+					throw new CueParseError(`Field "${label}": invalid regex pattern: ${operand}`, 0, 0);
 				}
 				if (operator === "=~") {
 					if (!regex.test(value)) {
@@ -656,7 +625,11 @@ class Deserializer {
 type LiteralType = "string" | "number" | "bool" | "null" | "object" | "array";
 
 type ExprNode =
-	| { kind: "literal"; value: string | number | boolean | null | Record<string, unknown> | unknown[]; type: LiteralType }
+	| {
+			kind: "literal";
+			value: string | number | boolean | null | Record<string, unknown> | unknown[];
+			type: LiteralType;
+	  }
 	| { kind: "ident"; name: string }
 	| { kind: "type_keyword"; name: string }
 	| { kind: "constraint"; operator: string; operand: ExprNode }

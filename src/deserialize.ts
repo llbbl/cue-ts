@@ -1,14 +1,11 @@
-import { deserializeTs, type DeserializeOptions } from "./deserializer.js";
-import { loadWasm, getWasmModule, isWasmLoaded } from "./wasm-loader.js";
+import { type DeserializeOptions, deserializeTs } from "./deserializer.js";
+import { getWasmModule, isWasmLoaded, loadWasm } from "./wasm-loader.js";
 
 /**
  * Synchronous deserialize -- uses WASM if already loaded, otherwise TS.
  * For guaranteed WASM usage, call `initWasm()` first at app startup.
  */
-export function deserialize(
-	input: string,
-	options?: DeserializeOptions,
-): Record<string, unknown> {
+export function deserialize(input: string, options?: DeserializeOptions): Record<string, unknown> {
 	const engine = options?.engine ?? "auto";
 	const strict = options?.strict ?? true;
 
@@ -19,9 +16,7 @@ export function deserialize(
 	if (engine === "wasm") {
 		const wasm = getWasmModule();
 		if (!wasm) {
-			throw new Error(
-				"WASM module not loaded. Call initWasm() first or use engine: 'auto'",
-			);
+			throw new Error("WASM module not loaded. Call initWasm() first or use engine: 'auto'");
 		}
 		return wasm.deserialize(input, strict);
 	}
@@ -48,9 +43,7 @@ export async function deserializeAsync(
 	if (engine !== "ts") {
 		const loaded = await loadWasm(); // Try to load WASM
 		if (engine === "wasm" && !loaded) {
-			throw new Error(
-				"WASM module failed to load. The .wasm binary may be missing.",
-			);
+			throw new Error("WASM module failed to load. The .wasm binary may be missing.");
 		}
 	}
 

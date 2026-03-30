@@ -30,8 +30,6 @@ export type {
 	CueUnaryExpr,
 	CueUnaryOperator,
 } from "./ast.js";
-export { CueParseError } from "./errors.js";
-
 // Smart deserialize with WASM auto-detection and fallback
 export {
 	deserialize,
@@ -41,5 +39,6 @@ export {
 export type { DeserializeOptions } from "./deserializer.js";
 // Direct access to the TS-only deserializer
 export { deserializeTs } from "./deserializer.js";
+export { CueParseError } from "./errors.js";
 export { Lexer } from "./lexer.js";
 export { type Token, TokenType } from "./tokens.js";
