@@ -353,6 +353,16 @@ impl Deserializer {
                 self.expect(&TokenType::RParen)?;
                 Ok(inner)
             }
+            TokenType::Hash => {
+                // #Reference (type reference like #Address, #User) -- treat as type-only
+                self.advance()?; // consume #
+                if self.peek()?.token_type == TokenType::Ident {
+                    self.advance()?; // consume the reference name
+                }
+                Ok(ExprNode::TypeKeyword {
+                    name: "definition_ref".to_string(),
+                })
+            }
             TokenType::StringType
             | TokenType::IntType
             | TokenType::FloatType
