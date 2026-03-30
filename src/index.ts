@@ -40,5 +40,6 @@ export type { DeserializeOptions } from "./deserializer.js";
 // Direct access to the TS-only deserializer
 export { deserializeTs } from "./deserializer.js";
 export { CueParseError } from "./errors.js";
+export { fastDeserialize } from "./fast-deserializer.js";
 export { Lexer } from "./lexer.js";
 export { type Token, TokenType } from "./tokens.js";
