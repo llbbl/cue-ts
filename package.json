@@ -1,6 +1,6 @@
 {
   "name": "cue-ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript parser for a subset of the CUE configuration language",
   "type": "module",
   "main": "dist/index.cjs",
