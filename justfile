@@ -39,13 +39,20 @@ ci: install-frozen lint test-run
 # Build
 # ============================================================================
 
+# Build WASM module
+wasm-build:
+    cd ./wasm && wasm-pack build --target web --release
+
 # Build library
 build:
     pnpm build
 
+# Build everything (WASM + TypeScript)
+build-all: wasm-build build
+
 # Clean build artifacts
 clean:
-    rm -rf ./dist
+    rm -rf ./dist ./wasm/pkg
 
 # Clean everything including dependencies
 clean-all: clean
