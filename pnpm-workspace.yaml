@@ -1,1 +1,25 @@
-approvedBuilds: esbuild
+# Supply-chain hardening (pnpm 11 defaults shown explicitly, so the security
+# posture is visible in review and survives future changes to pnpm's defaults).
+minimumReleaseAge: 1440 # block packages younger than 24h
+blockExoticSubdeps: true # no git/tarball transitive deps
+strictDepBuilds: true # fail install on unapproved postinstalls
+verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
+
+# Postinstall allowlist. Empty map = block all build scripts.
+#
+# This replaces `approvedBuilds: esbuild`, which was the previous contents of
+# this file. `approvedBuilds` is not a key pnpm recognises — pnpm 10 used
+# `onlyBuiltDependencies` (a list) and pnpm 11 uses `allowBuilds` (a map), and
+# a bare scalar is the wrong shape for either. The intent to approve esbuild
+# was clear, so it is carried over here in a form pnpm actually reads.
+allowBuilds:
+  esbuild: true # native bundler binary, required by tsup
+
+# CVE remediations for transitive dev dependencies. All three arrive via tsup
+# and vitest, neither of which had released a version pulling the fixed
+# ranges, so they are forced here. Do not relax a bound without checking the
+# advisory it was added for.
+overrides:
+  postcss: ^8.5.18 # 3 advisories, incl. 2 high
+  vite: ^8.0.16 # 4 advisories, incl. 2 high (server.fs.deny bypasses)
+  esbuild: ^0.28.1 # 1 low

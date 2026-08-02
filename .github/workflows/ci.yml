@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: ['20', '22', '24']
+        # Node 20 is not tested: pnpm 11 is pure ESM and requires Node >=22, so
+        # `pnpm install` cannot run on it. Node 20 reached end-of-life in April
+        # 2026, and engines.node is set to >=22 to match what is actually tested.
+        node-version: ['22', '24']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
