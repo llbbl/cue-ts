@@ -1,1 +1,16 @@
-approvedBuilds: esbuild
+# Supply-chain hardening (pnpm 11 defaults shown explicitly, so the security
+# posture is visible in review and survives future changes to pnpm's defaults).
+minimumReleaseAge: 1440 # block packages younger than 24h
+blockExoticSubdeps: true # no git/tarball transitive deps
+strictDepBuilds: true # fail install on unapproved postinstalls
+verifyDepsBeforeRun: install # re-check lockfile before `pnpm run`
+
+# Postinstall allowlist. Empty map = block all build scripts.
+#
+# This replaces `approvedBuilds: esbuild`, which was the previous contents of
+# this file. `approvedBuilds` is not a key pnpm recognises — pnpm 10 used
+# `onlyBuiltDependencies` (a list) and pnpm 11 uses `allowBuilds` (a map), and
+# a bare scalar is the wrong shape for either. The intent to approve esbuild
+# was clear, so it is carried over here in a form pnpm actually reads.
+allowBuilds:
+  esbuild: true # native bundler binary, required by tsup
